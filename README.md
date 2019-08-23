@@ -25,7 +25,8 @@ Step 2. Add the dependency
 ### 2.支持事务
 ### 3.支持ORM
 ### 4.缓存Sql，缓存表结构
- 
+### 只能保存基本类型数据，如果数据中有list和对象类型字段，可以创建对应的string类型字段，
+### 用executor.listToString/objToString 转化为String类型保存，取出的时候再用executor.stringToObj/stringtoListObj转化回来
  
 这个类库主要用于android 数据库操作。
 始终围绕着一个类对应一个表的概念。
