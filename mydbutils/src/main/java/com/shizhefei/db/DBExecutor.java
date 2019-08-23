@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
+import com.google.gson.Gson;
 import com.shizhefei.db.converters.ColumnConverterFactory;
 import com.shizhefei.db.converters.IColumnConverter;
 import com.shizhefei.db.database.DBHelper;
@@ -20,6 +21,8 @@ import com.shizhefei.db.table.TableFactory;
 import com.shizhefei.db.utils.LogUtils;
 import com.shizhefei.db.utils.ObjectFactory;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +31,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * 数据库操作类，负责执行Sql({@link om.shizhefei.db.sql.Sql}) (线程安全)
+ * 数据库操作类，负责执行Sql() (线程安全)
  * 
  * @see Sql
  * @see SqlFactory
@@ -49,17 +52,78 @@ public class DBExecutor {
 	private Object hasCheckTableLock = new Object();
 	public static final String DEFAULT_DBNAME = "MY_DB.db";
 	public static final int DEFAULT_DBVERION = 1;
+	public static Gson gson;
+
+	public String listToString(List<?> list){
+		String str=gson.toJson(list);
+		return str;
+	}
+
+	public String objToString(Object list){
+		String str=gson.toJson(list);
+		return str;
+	}
+
+	public <T>T stringToObj(String objStr,Class clazz){
+		Type type = new ParameterizedTypeImpl(clazz);
+		T obj=gson.fromJson(objStr, type);
+		return obj;
+	}
+
+	/**
+	 *
+	 * @param json  要解析的字符串对象
+	 * @param clazz  T的泛型获取到的class
+	 * @param <T>
+	 * @return
+	 */
+	public <T> List<T> stringToListObj(String json,Class clazz) {
+		Type type = new ParameterizedTypeImpl(clazz);
+		List<T> list = gson.fromJson(json, type);
+		return list;
+	}
+
+	private  class ParameterizedTypeImpl implements ParameterizedType {
+		Class clazz;
+
+		public ParameterizedTypeImpl(Class clz) {
+			clazz = clz;
+		}
+
+		@Override
+		public Type[] getActualTypeArguments() {
+			return new Type[]{clazz};
+		}
+
+		@Override
+		public Type getRawType() {
+			return List.class;
+		}
+
+		@Override
+		public Type getOwnerType() {
+			return null;
+		}
+	}
 
 	/**
 	 * 默认使用数据库的名字为{@link DBExecutor#DEFAULT_DBNAME}<br/>
 	 * 默认使用数据库的版本为{@link DBExecutor#DEFAULT_DBVERION}<br/>
 	 * 如果需要修改数据版本，监听数据库的变化请用{@link DBExecutor#getInstance(DBHelper)}
-	 * 
+	 * 只能保存基本类型
 	 * @param context
 	 * @return
 	 */
 	public static DBExecutor getInstance(Context context) {
 		return getInstance(new NameDBHelper(context, DEFAULT_DBNAME, DEFAULT_DBVERION));
+	}
+
+	public static DBExecutor getInstance(Context context,int DBVERSION) {
+		return getInstance(new NameDBHelper(context, DEFAULT_DBNAME, DBVERSION));
+	}
+
+	public static DBExecutor getInstance(Context context,String DBNAME,int DBVERSION) {
+		return getInstance(new NameDBHelper(context, DBNAME, DBVERSION));
 	}
 
 	/**
@@ -76,6 +140,9 @@ public class DBExecutor {
 		if (dbExecutor == null) {
 			dbExecutor = new DBExecutor(dbHelper);
 			dbExecutors.put(path, dbExecutor);
+		}
+		if(gson==null){
+			gson=new Gson();
 		}
 		return dbExecutor;
 	}
@@ -395,10 +462,7 @@ public class DBExecutor {
 	/**
 	 * 获取cursor 中查询到的值，用于 select count(*) from 查找的东西不是表的字段的情况
 	 * 
-	 * @param <T>
-	 * @param table
 	 * @param cursor
-	 * @param factory
 	 * @return
 	 * @throws Exception
 	 */

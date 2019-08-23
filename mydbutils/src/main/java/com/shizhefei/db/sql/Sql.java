@@ -2,6 +2,7 @@ package com.shizhefei.db.sql;
 
 import com.shizhefei.db.table.Table;
 import com.shizhefei.db.table.TableFactory;
+import com.shizhefei.db.utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +39,7 @@ public abstract class Sql implements ISql {
 	protected Sql(Class<?> tableClass) {
 		super();
 		this.table = TableFactory.getTable(tableClass);
-
+		LogUtils.i("当前table名字："+table.getTableName());
 	}
 
 	protected Sql(Table table) {

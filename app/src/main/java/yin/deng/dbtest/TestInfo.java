@@ -45,4 +45,14 @@ public class TestInfo {
     public void setAge(int age) {
         this.age = age;
     }
+
+    @Override
+    public String toString() {
+        return "TestInfo{" +
+                "_id='" + _id + '\'' +
+                ", userName='" + userName + '\'' +
+                ", userPwd='" + userPwd + '\'' +
+                ", age=" + age +
+                '}';
+    }
 }

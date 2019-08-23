@@ -93,4 +93,8 @@ public class TableFactory {
 		return tableClass.getCanonicalName().replace('.', '_');
 	}
 
+	public static Map<Class<?>, Table> getTables() {
+		return tables;
+	}
+
 }
